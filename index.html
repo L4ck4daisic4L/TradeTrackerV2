@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradeTracker</title>
+    <style>
+        :root {
+            --bg-color: linear-gradient(145deg, #e0e0e0, #f5f5f5);
+            --text-color: #333;
+            --header-color: #2c3e50;
+            --card-bg: #e0e0e0;
+            --input-bg: #d0d0d0;
+            --button-bg: #0088cc;
+            --button-text: white;
+            --shadow-out: 5px 5px 10px rgba(0, 0, 0, 0.15), -5px -5px 10px rgba(255, 255, 255, 0.9);
+            --shadow-in: inset 3px 3px 6px rgba(0, 0, 0, 0.1), inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+            --positive: #16a34a;
+            --negative: #ef4444;
+            --buy-active: #16a34a;
+            --sell-active: #ef4444;
+            --pill-active: #4fc3f7;
+            --modal-bg: rgba(0, 0, 0, 0.5);
+            --calendar-bg: #e6e6e6;
+            --calendar-today-bg: #06b6d4;
+            --calendar-selected-bg: #22d3ee;
+            --calendar-dot: #22c55e;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: linear-gradient(145deg, #2c2c2c, #3a3a3a);
+            --text-color: #e0e0e0;
+            --header-color: #ffffff;
+            --card-bg: #3a3a3a;
+            --input-bg: #333333;
+            --button-bg: #4fc3f7;
+            --button-text: #ffffff;
+            --shadow-out: 5px 5px 10px rgba(0, 0, 0, 0.4), -5px -5px 10px rgba(80, 80, 80, 0.3);
+            --shadow-in: inset 3px 3px 6px rgba(0, 0, 0, 0.3), inset -3px -3px 6px rgba(80, 80, 80, 0.2);
+            --positive: #4caf50;
+            --negative: #ef5350;
+            --buy-active: #4caf50;
+            --sell-active: #ef5350;
+            --pill-active: #29b6f6;
+            --modal-bg: rgba(255, 255, 255, 0.1);
+            --calendar-bg: #333333;
+            --calendar-today-bg: #06b6d4;
+            --calendar-selected-bg: #22d3ee;
+            --calendar-dot: #4ade80;
+        }
+
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow-out);
+            min-height: 80vh;
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        h1, h3 {
+            color: var(--header-color);
+            margin: 0 0 10px;
+            text-align: center;
+        }
+
+        .top-buttons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .bottom-buttons {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #day-page:not([style*="display: none"]) ~ .bottom-buttons {
+            display: none;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input[type="number"], input[type="file"] {
+            padding: 6px;
+            border: none;
+            border-radius: 6px;
+            background: var(--input-bg);
+            box-shadow: var(--shadow-in);
+            color: var(--text-color);
+            font-size: 14px;
+            width: 100px;
+            text-align: center;
+        }
+
+        input[type="file"] {
+            width: auto;
+            display: none;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            background: var(--button-bg);
+            border: none;
+            border-radius: 6px;
+            color: var(--button-text);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: var(--shadow-out);
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            box-shadow: var(--shadow-in);
+            opacity: 0.9;
+        }
+
+        .btn.active-buy {
+            background: var(--buy-active);
+        }
+
+        .btn.active-sell {
+            background: var(--sell-active);
+        }
+
+        .btn.active-pill {
+            background: var(--pill-active);
+            box-shadow: var(--shadow-in);
+        }
+
+        .arrow-btn {
+            padding: 6px 10px;
+            font-size: 14px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: none;
+            border-radius: 8px;
+            box-shadow: var(--shadow-out);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .arrow-btn:hover {
+            background: var(--input-bg);
+            box-shadow: var(--shadow-in);
+        }
+
+        .summary {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: nowrap;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-out);
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .card .small {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .card .value {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .calendar-container {
+            background: var(--calendar-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow-out);
+            padding: 20px;
+            margin-top: 20px;
+            margin-bottom: 80px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+            box-sizing: border-box;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            min-height: 300px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-header h3 {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .calendar {
+            display: grid !important;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 3px;
+            justify-content: center;
+            width: 90%;
+            margin: 0 auto;
+            min-height: 200px;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: relative;
+            z-index: 11;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 3px;
+            justify-content: center;
+            margin-bottom: 4px;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            color: var(--header-color);
+            font-size: 10px;
+            text-transform: uppercase;
+            line-height: 1;
+            padding: 5px 0;
+        }
+
+        .calendar-cell {
+            aspect-ratio: 1 / 1;
+            text-align: center;
+            line-height: 1;
+            font-size: 12px;
+            font-weight: 700;
+            background: var(--card-bg);
+            border-radius: 6px;
+            box-shadow: var(--shadow-out);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 30px;
+            min-width: 30px;
+        }
+
+        .calendar-cell:hover {
+            background: var(--input-bg);
+            box-shadow: var(--shadow-in);
+        }
+
+        .calendar-cell.today {
+            background: var(--calendar-today-bg);
+            color: var(--button-text);
+            box-shadow: none;
+        }
+
+        .calendar-cell.selected {
+            background: var(--calendar-selected-bg);
+            color: var(--button-text);
+            box-shadow: none;
+        }
+
+        .calendar-cell.disabled {
+            background: var(--card-bg);
+            color: #888;
+            cursor: default;
+            box-shadow: none;
+            font-weight: 700;
+        }
+
+        .calendar-cell.disabled:hover {
+            background: var(--card-bg);
+            box-shadow: none;
+        }
+
+        .calendar-cell.has-trades::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background: var(--calendar-dot);
+            border-radius: 50%;
+        }
+
+        .day-page {
+            display: none;
+        }
+
+        .day-header {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trade-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: nowrap;
+        }
+
+        .statics {
+            display: flex;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-out);
+            margin: 15px 0;
+        }
+
+        .statics-left, .statics-right {
+            flex: 1;
+            padding: 8px;
+            background: var(--card-bg);
+            border-radius: 6px;
+            box-shadow: var(--shadow-in);
+        }
+
+        .trade-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .trade-table th, .trade-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .trade-table th {
+            font-weight: 600;
+            color: var(--header-color);
+            font-size: 13px;
+        }
+
+        .trade-table td {
+            font-size: 13px;
+        }
+
+        .trade-table .negative {
+            color: var(--negative);
+        }
+
+        .trade-table .positive {
+            color: var(--positive);
+        }
+
+        .edit-entry {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-bg);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-out);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 200px;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: 100%;
+        }
+
+        .modal-content .btn {
+            align-self: center;
+            min-width: 80px;
+        }
+
+        .completed {
+            color: var(--positive);
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                max-width: 100%;
+            }
+
+            .calendar-container {
+                max-width: 100%;
+                margin-bottom: 100px;
+            }
+
+            .calendar, .calendar-days {
+                grid-template-columns: repeat(7, minmax(0, 1fr));
+                gap: 2px;
+                width: 90%;
+                margin: 0 auto;
+            }
+
+            .calendar-day-header {
+                font-size: 9px;
+                padding: 4px 0;
+            }
+
+            .calendar-cell {
+                font-size: 11px;
+                font-weight: 700;
+                min-height: 25px;
+                min-width: 25px;
+            }
+
+            .calendar-cell.disabled {
+                font-weight: 700;
+            }
+
+            .calendar-cell.has-trades::after {
+                width: 3px;
+                height: 3px;
+                bottom: 2px;
+            }
+
+            .summary {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .card {
+                min-width: 100px;
+            }
+
+            .statics {
+                flex-direction: column;
+            }
+
+            .trade-controls {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: center;
+            }
+
+            .back-btn {
+                top: 10px;
+                right: 10px;
+            }
+
+            .bottom-buttons {
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="calendar-view" style="display: block;">
+            <h1 id="calendar-title">TradeTracker</h1>
+            <p style="text-align: center; font-size: 14px; color: var(--text-color);">Version 2 build by Franze (rebuilt 3 times)</p>
+            <div class="top-buttons" id="top-buttons">
+                <button id="theme-toggle" class="btn">🌙</button>
+                <button id="capital-btn" class="btn">Capital</button>
+            </div>
+            <div class="summary">
+                <div class="card">
+                    <div class="small">Current Balance</div>
+                    <div class="value" id="current-balance">$0.00</div>
+                </div>
+                <div class="card">
+                    <div class="small">Total Profit</div>
+                    <div class="value" id="total-profit">$0.00</div>
+                </div>
+                <div class="card">
+                    <div class="small">Total Loss</div>
+                    <div class="value" id="total-loss">$0.00</div>
+                </div>
+                <div class="card">
+                    <div class="small">Peak Balance</div>
+                    <div class="value" id="peak-balance">$0.00</div>
+                </div>
+                <div class="card">
+                    <div class="small">Drawdown</div>
+                    <div class="value" id="drawdown">0%</div>
+                </div>
+            </div>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button class="arrow-btn" id="prev-month">◀</button>
+                    <h3 id="month-title"></h3>
+                    <button class="arrow-btn" id="next-month">▶</button>
+                </div>
+                <div id="calendar-days" class="calendar-days">
+                    <div class="calendar-day-header">Sun</div>
+                    <div class="calendar-day-header">Mon</div>
+                    <div class="calendar-day-header">Tue</div>
+                    <div class="calendar-day-header">Wed</div>
+                    <div class="calendar-day-header">Thu</div>
+                    <div class="calendar-day-header">Fri</div>
+                    <div class="calendar-day-header">Sat</div>
+                </div>
+                <div id="calendar" class="calendar"></div>
+            </div>
+        </div>
+        <div class="bottom-buttons">
+            <button id="save-state-btn" class="btn">Save</button>
+            <button id="restore-state-btn" class="btn">Restore</button>
+            <input type="file" id="restore-file-input" accept=".json">
+        </div>
+        <div id="day-page" class="day-page">
+            <button class="btn back-btn">Back</button>
+            <div class="day-header">
+                <button class="arrow-btn" id="prev-day">◀</button>
+                <h3 id="day-title"></h3>
+                <button class="arrow-btn" id="next-day">▶</button>
+            </div>
+            <div class="trade-controls">
+                <button id="type-btn" class="btn">Type</button>
+                <button id="outcome-btn" class="btn">Outcome</button>
+                <input type="number" id="trade-amount" placeholder="Amount" step="0.01">
+                <button id="save-btn" class="btn">Save</button>
+            </div>
+            <div class="statics">
+                <div class="statics-left">
+                    <h3>Daily Statistics</h3>
+                    <div class="card">
+                        <div class="small">Daily Goal</div>
+                        <div class="value" id="daily-goal">$5.00 (5%)</div>
+                    </div>
+                    <div class="card">
+                        <div class="small">Today's Profit</div>
+                        <div class="value" id="today-profit">0.00%</div>
+                    </div>
+                    <div class="card">
+                        <div class="small">Next Target Profit</div>
+                        <div class="value" id="next-target">$5.00 (5%)</div>
+                    </div>
+                </div>
+                <div class="statics-right">
+                    <h3>Trade Summary</h3>
+                    <div class="card">
+                        <div class="small">Funds</div>
+                        <div class="value" id="funds">$100.00</div>
+                    </div>
+                    <div class="card">
+                        <div class="small">Total Trades</div>
+                        <div class="value" id="total-trades">0</div>
+                    </div>
+                    <div class="card">
+                        <div class="small">Buy/Sell</div>
+                        <div class="value" id="buy-sell">0/0</div>
+                    </div>
+                </div>
+            </div>
+            <table id="trade-table" class="trade-table">
+                <thead>
+                    <tr>
+                        <th>Trade #</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Outcome</th>
+                    </tr>
+                </thead>
+                <tbody id="trade-table-body"></tbody>
+            </table>
+        </div>
+        <div id="capital-modal" class="modal">
+            <div class="modal-content">
+                <h3>Update Starting Capital</h3>
+                <input type="number" id="capital-input" placeholder="Enter capital" min="0" step="0.01">
+                <button id="capital-save" class="btn">Save</button>
+                <button id="capital-cancel" class="btn">Cancel</button>
+            </div>
+        </div>
+        <div id="edit-modal" class="modal">
+            <div class="modal-content">
+                <h3>Edit Trade</h3>
+                <label>Type:</label>
+                <button id="edit-type-btn" class="btn">Type</button>
+                <label>Amount:</label>
+                <input type="number" id="edit-amount" step="0.01">
+                <label>Outcome:</label>
+                <button id="edit-outcome-btn" class="btn">Outcome</button>
+                <div class="edit-entry">
+                    <button id="edit-save" class="btn">Save</button>
+                    <button id="edit-delete" class="btn">Delete</button>
+                    <button id="edit-cancel" class="btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const DAILY_GOAL = 0.05;
+        const calendarView = document.getElementById('calendar-view');
+        const dayPage = document.getElementById('day-page');
+        const capitalModal = document.getElementById('capital-modal');
+        const editModal = document.getElementById('edit-modal');
+        const calendarTitle = document.getElementById('calendar-title');
+        const monthTitle = document.getElementById('month-title');
+        const dayTitle = document.getElementById('day-title');
+        const calendarBody = document.getElementById('calendar');
+        const prevMonth = document.getElementById('prev-month');
+        const nextMonth = document.getElementById('next-month');
+        const tradeTableBody = document.getElementById('trade-table-body');
+        const typeBtn = document.getElementById('type-btn');
+        const outcomeBtn = document.getElementById('outcome-btn');
+        const tradeAmount = document.getElementById('trade-amount');
+        const saveBtn = document.getElementById('save-btn');
+        const dailyGoal = document.getElementById('daily-goal');
+        const todayProfit = document.getElementById('today-profit');
+        const nextTarget = document.getElementById('next-target');
+        const funds = document.getElementById('funds');
+        const totalTrades = document.getElementById('total-trades');
+        const buySell = document.getElementById('buy-sell');
+        const backBtn = document.querySelector('.back-btn');
+        const currentBalanceEl = document.getElementById('current-balance');
+        const totalProfitEl = document.getElementById('total-profit');
+        const totalLossEl = document.getElementById('total-loss');
+        const peakBalanceEl = document.getElementById('peak-balance');
+        const drawdownEl = document.getElementById('drawdown');
+        const themeToggle = document.getElementById('theme-toggle');
+        const capitalBtn = document.getElementById('capital-btn');
+        const capitalInput = document.getElementById('capital-input');
+        const capitalSave = document.getElementById('capital-save');
+        const capitalCancel = document.getElementById('capital-cancel');
+        const editTypeBtn = document.getElementById('edit-type-btn');
+        const editAmount = document.getElementById('edit-amount');
+        const editOutcomeBtn = document.getElementById('edit-outcome-btn');
+        const editSave = document.getElementById('edit-save');
+        const editDelete = document.getElementById('edit-delete');
+        const editCancel = document.getElementById('edit-cancel');
+        const prevDay = document.getElementById('prev-day');
+        const nextDay = document.getElementById('next-day');
+        const saveStateBtn = document.getElementById('save-state-btn');
+        const restoreStateBtn = document.getElementById('restore-state-btn');
+        const restoreFileInput = document.getElementById('restore-file-input');
+        const bottomButtons = document.querySelector('.bottom-buttons');
+
+        let state = null;
+        let selectedTradeIndex = null;
+        let currentDate = null;
+
+        function round(num) {
+            return Math.round(num * 100) / 100;
+        }
+
+        function load() {
+            console.log('Attempting to load state from localStorage');
+            try {
+                const saved = localStorage.getItem('tradeState');
+                let theme = localStorage.getItem('theme') || 'light';
+                document.documentElement.dataset.theme = theme;
+                themeToggle.innerText = theme === 'dark' ? '☀️' : '🌙';
+                console.log(`Loaded theme: ${theme}`);
+                if (saved) {
+                    const loadedState = JSON.parse(saved);
+                    if (typeof loadedState.year === 'number' &&
+                        typeof loadedState.month === 'number' &&
+                        loadedState.month >= 0 && loadedState.month <= 11 &&
+                        typeof loadedState.initialCapital === 'number' &&
+                        loadedState.initialCapital >= 0 &&
+                        Array.isArray(loadedState.days) &&
+                        loadedState.days.every(day =>
+                            day.date && typeof day.date === 'string' &&
+                            Array.isArray(day.trades) &&
+                            typeof day.startOfDay === 'number' &&
+                            typeof day.endOfDay === 'number' &&
+                            typeof day.dailyProfit === 'number'
+                        )) {
+                        console.log('Loaded valid state:', JSON.stringify(loadedState, null, 2));
+                        return loadedState;
+                    }
+                    console.warn('Invalid state detected, clearing localStorage');
+                    localStorage.removeItem('tradeState');
+                }
+            } catch (error) {
+                console.error('Error loading state:', error);
+                localStorage.removeItem('tradeState');
+            }
+            const now = new Date();
+            const defaultState = {
+                year: now.getFullYear(),
+                month: now.getMonth(),
+                initialCapital: 100,
+                days: []
+            };
+            console.log('Using default state:', JSON.stringify(defaultState, null, 2));
+            return defaultState;
+        }
+
+        function save(state) {
+            try {
+                localStorage.setItem('tradeState', JSON.stringify(state));
+                localStorage.setItem('theme', document.documentElement.dataset.theme);
+                console.log('State saved:', JSON.stringify(state, null, 2));
+            } catch (error) {
+                console.error('Error saving state:', error);
+            }
+        }
+
+        function saveStateToFile() {
+            try {
+                const data = JSON.stringify(state, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'trade_tracker.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                console.log('State saved to file');
+            } catch (error) {
+                console.error('Error saving state to file:', error);
+                alert('Failed to save state.');
+            }
+        }
+
+        function restoreStateFromFile(event) {
+            try {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const newState = JSON.parse(e.target.result);
+                        if (typeof newState.year === 'number' &&
+                            typeof newState.month === 'number' &&
+                            newState.month >= 0 && newState.month <= 11 &&
+                            typeof newState.initialCapital === 'number' &&
+                            newState.initialCapital >= 0 &&
+                            Array.isArray(newState.days) &&
+                            newState.days.every(day =>
+                                day.date && typeof day.date === 'string' &&
+                                Array.isArray(day.trades) &&
+                                typeof day.startOfDay === 'number' &&
+                                typeof day.endOfDay === 'number' &&
+                                typeof day.dailyProfit === 'number'
+                            )) {
+                            state = newState;
+                            updateAllDays();
+                            save(state);
+                            if (currentDate) {
+                                showDayPage(currentDate);
+                            } else {
+                                renderCalendar(state);
+                            }
+                            console.log('State restored:', JSON.stringify(state, null, 2));
+                            alert('State restored successfully!');
+                        } else {
+                            alert('Invalid state file format.');
+                        }
+                    } catch (error) {
+                        console.error('Error restoring state:', error);
+                        alert('Failed to restore state.');
+                    }
+                    restoreFileInput.value = '';
+                };
+                reader.readAsText(file);
+            } catch (error) {
+                console.error('Error reading file:', error);
+            }
+        }
+
+        function getStartOfDay(date) {
+            try {
+                const sortedDays = state.days
+                    .filter(d => new Date(d.date) < new Date(date))
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                const prevDay = sortedDays.length > 0 ? sortedDays[0] : null;
+                const start = prevDay ? prevDay.endOfDay : state.initialCapital;
+                console.log(`getStartOfDay for ${date}: ${start}`);
+                return round(start);
+            } catch (error) {
+                console.error('Error in getStartOfDay:', error);
+                return state.initialCapital;
+            }
+        }
+
+        function updateDayData(dayData) {
+            try {
+                let currentBalance = dayData.startOfDay;
+                for (const trade of dayData.trades) {
+                    currentBalance += trade.outcome === 'Loss' ? -Math.abs(trade.amount) : trade.amount;
+                }
+                dayData.endOfDay = round(currentBalance);
+                dayData.dailyProfit = dayData.startOfDay > 0 ? round(((dayData.endOfDay / dayData.startOfDay) - 1) * 100) : 0;
+                console.log(`Updated ${dayData.date}: startOfDay=${dayData.startOfDay}, endOfDay=${dayData.endOfDay}, dailyProfit=${dayData.dailyProfit}%`);
+            } catch (error) {
+                console.error(`Error updating day data for ${dayData.date}:`, error);
+            }
+        }
+
+        function updateAllDays() {
+            try {
+                state.days.sort((a, b) => new Date(a.date) - new Date(b.date));
+                let lastEndOfDay = state.initialCapital;
+                for (const dayData of state.days) {
+                    dayData.startOfDay = round(lastEndOfDay);
+                    updateDayData(dayData);
+                    lastEndOfDay = dayData.endOfDay;
+                }
+                console.log('Updated all days:', JSON.stringify(state.days.map(d => ({ date: d.date, startOfDay: d.startOfDay, endOfDay: d.endOfDay })), null, 2));
+            } catch (error) {
+                console.error('Error updating all days:', error);
+            }
+        }
+
+        function renderCalendar(state) {
+            console.log('Starting renderCalendar with state:', JSON.stringify(state, null, 2));
+            
+            // Check DOM elements
+            if (!calendarBody || !monthTitle || !calendarView || !calendarTitle) {
+                console.error('Missing DOM elements:', {
+                    calendarBody: !!calendarBody,
+                    monthTitle: !!monthTitle,
+                    calendarView: !!calendarView,
+                    calendarTitle: !!calendarTitle
+                });
+                alert('Error: Calendar elements missing. Check HTML structure.');
+                // Create fallback calendar element
+                if (!calendarBody) {
+                    const container = document.querySelector('.calendar-container');
+                    if (container) {
+                        const newCalendar = document.createElement('div');
+                        newCalendar.id = 'calendar';
+                        newCalendar.className = 'calendar';
+                        container.appendChild(newCalendar);
+                        calendarBody = newCalendar;
+                        console.log('Created fallback calendar element');
+                    } else {
+                        console.error('Calendar container not found');
+                        return;
+                    }
+                }
+                return;
+            }
+
+            // Log calendar visibility
+            const calendarStyles = window.getComputedStyle(calendarBody);
+            console.log('Calendar computed styles:', {
+                display: calendarStyles.display,
+                visibility: calendarStyles.visibility,
+                opacity: calendarStyles.opacity,
+                width: calendarStyles.width,
+                height: calendarStyles.height
+            });
+
+            // Validate state
+            if (!state || typeof state.year !== 'number' || typeof state.month !== 'number' || !Array.isArray(state.days)) {
+                console.error('Invalid state:', state);
+                state = load();
+                console.log('Reset to default state:', JSON.stringify(state, null, 2));
+            }
+
+            try {
+                // Set visibility
+                console.log('Setting view visibility');
+                calendarView.style.display = 'block';
+                calendarView.style.visibility = 'visible';
+                calendarView.style.opacity = '1';
+                dayPage.style.display = 'none';
+                backBtn.style.display = 'none';
+                capitalModal.style.display = 'none';
+                editModal.style.display = 'none';
+                bottomButtons.style.display = 'flex';
+                calendarTitle.innerText = 'TradeTracker';
+                monthTitle.innerText = new Date(state.year, state.month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                calendarBody.innerHTML = '';
+                console.log('Cleared calendar body');
+
+                // Get calendar data
+                const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+                const firstDay = new Date(Date.UTC(state.year, state.month, 1)).getDay();
+                const today = new Date().toISOString().split('T')[0];
+                console.log(`Calendar data: year=${state.year}, month=${state.month + 1}, daysInMonth=${daysInMonth}, firstDay=${firstDay}, today=${today}`);
+
+                // Update days
+                try {
+                    updateAllDays();
+                } catch (error) {
+                    console.error('Error in updateAllDays:', error);
+                }
+
+                let peak = state.initialCapital;
+                let lastDayEnd = state.initialCapital;
+
+                // Render leading empty cells
+                try {
+                    for (let i = 0; i < firstDay; i++) {
+                        const div = document.createElement('div');
+                        div.className = 'calendar-cell disabled';
+                        div.innerText = '';
+                        calendarBody.appendChild(div);
+                    }
+                    console.log(`Added ${firstDay} leading empty cells`);
+                } catch (error) {
+                    console.error('Error rendering leading cells:', error);
+                }
+
+                // Render days
+                try {
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(Date.UTC(state.year, state.month, day)).toISOString().split('T')[0];
+                        console.log(`Rendering day ${day}: ${date}`);
+                        let dayData = state.days.find(d => d.date === date);
+                        if (!dayData) {
+                            dayData = { date, trades: [], startOfDay: getStartOfDay(date), endOfDay: 0, dailyProfit: 0 };
+                            state.days.push(dayData);
+                            console.log(`Created new day data for ${date}`);
+                        }
+                        updateDayData(dayData);
+
+                        const div = document.createElement('div');
+                        div.className = 'calendar-cell';
+                        div.innerText = day;
+                        if (date === today && state.month === new Date().getMonth() && state.year === new Date().getFullYear()) {
+                            div.className += ' today';
+                        }
+                        if (dayData.trades.length > 0) {
+                            div.className += ' has-trades';
+                        }
+                        div.onclick = () => {
+                            console.log(`Clicked day ${day}: ${date}`);
+                            currentDate = date;
+                            showDayPage(date);
+                        };
+                        calendarBody.appendChild(div);
+                        console.log(`Appended day ${day}`);
+
+                        lastDayEnd = dayData.endOfDay;
+                        if (lastDayEnd > peak) peak = lastDayEnd;
+                    }
+                } catch (error) {
+                    console.error('Error rendering days:', error);
+                }
+
+                // Render trailing empty cells
+                try {
+                    const totalCells = firstDay + daysInMonth;
+                    const remainingCells = 7 - (totalCells % 7 || 7);
+                    if (remainingCells < 7) {
+                        for (let i = 0; i < remainingCells; i++) {
+                            const div = document.createElement('div');
+                            div.className = 'calendar-cell disabled';
+                            div.innerText = '';
+                            calendarBody.appendChild(div);
+                        }
+                        console.log(`Added ${remainingCells} trailing empty cells`);
+                    }
+                } catch (error) {
+                    console.error('Error rendering trailing cells:', error);
+                }
+
+                // Update summary
+                try {
+                    const { totalProfit, totalLoss } = calculateMonthlyTotals(state);
+                    currentBalanceEl.innerText = `$${lastDayEnd.toFixed(2)}`;
+                    totalProfitEl.innerText = `$${totalProfit.toFixed(2)}`;
+                    totalLossEl.innerText = `$${totalLoss.toFixed(2)}`;
+                    peakBalanceEl.innerText = `$${peak.toFixed(2)}`;
+                    const dd = peak > lastDayEnd ? ((peak - lastDayEnd) / peak * 100) : 0;
+                    drawdownEl.innerText = `${dd.toFixed(2)}%`;
+                } catch (error) {
+                    console.error('Error updating summary:', error);
+                }
+
+                save(state);
+                console.log('Calendar rendering completed');
+            } catch (error) {
+                console.error('Error in renderCalendar:', error);
+                calendarBody.innerHTML = '<div style="text-align: center; color: var(--text-color);">Error loading calendar. Check console for details.</div>';
+                alert('Failed to render calendar. Check console.');
+            }
+        }
+
+        function calculateMonthlyTotals(state) {
+            try {
+                let totalProfit = 0;
+                let totalLoss = 0;
+                for (const day of state.days) {
+                    for (const trade of day.trades) {
+                        if (trade.outcome === 'Win') totalProfit += trade.amount;
+                        if (trade.outcome === 'Loss') totalLoss += trade.amount;
+                    }
+                }
+                console.log(`Monthly totals: profit=$${totalProfit}, loss=$${totalLoss}`);
+                return { totalProfit, totalLoss };
+            } catch (error) {
+                console.error('Error calculating monthly totals:', error);
+                return { totalProfit: 0, totalLoss: 0 };
+            }
+        }
+
+        function showDayPage(date) {
+            try {
+                if (!dayPage || !calendarView) {
+                    console.error('Missing day page elements:', { dayPage, calendarView });
+                    alert('Error: Day page elements missing.');
+                    return;
+                }
+                console.log(`Showing day page for: ${date}`);
+                calendarView.style.display = 'none';
+                dayPage.style.display = 'block';
+                backBtn.style.display = 'block';
+                capitalModal.style.display = 'none';
+                editModal.style.display = 'none';
+                bottomButtons.style.display = 'none';
+                dayTitle.innerText = new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                let dayData = state.days.find(d => d.date === date);
+                if (!dayData) {
+                    const startOfDay = getStartOfDay(date);
+                    dayData = { date, trades: [], startOfDay, endOfDay: 0, dailyProfit: 0 };
+                    state.days.push(dayData);
+                    console.log(`Created new day data for ${date}`);
+                }
+                
+                updateDayData(dayData);
+                dailyGoal.innerHTML = `$${round(dayData.startOfDay * DAILY_GOAL).toFixed(2)} (5%)${dayData.dailyProfit >= 5 ? ' <span class="completed">(Completed)</span>' : ''}`;
+                todayProfit.innerText = `${dayData.dailyProfit.toFixed(2)}%`;
+                nextTarget.innerText = `$${round(dayData.endOfDay * DAILY_GOAL).toFixed(2)} (5%)`;
+                funds.innerText = `$${dayData.endOfDay.toFixed(2)}`;
+                totalTrades.innerText = dayData.trades.length;
+                const buyCount = dayData.trades.filter(t => t.type === 'Buy').length;
+                const sellCount = dayData.trades.filter(t => t.type === 'Sell').length;
+                buySell.innerText = `${buyCount}/${sellCount}`;
+                
+                renderTradeTable(dayData);
+                typeBtn.innerText = 'Type';
+                outcomeBtn.innerText = 'Outcome';
+                typeBtn.classList.remove('active-buy', 'active-sell');
+                outcomeBtn.classList.remove('active-pill');
+                tradeAmount.value = '';
+            } catch (error) {
+                console.error('Error in showDayPage:', error);
+            }
+        }
+
+        function renderTradeTable(dayData) {
+            try {
+                tradeTableBody.innerHTML = '';
+                dayData.trades.forEach((trade, index) => {
+                    const percentage = dayData.startOfDay > 0 ? trade.amount / dayData.startOfDay * 100 : 0;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${trade.type}</td>
+                        <td class="${trade.outcome === 'Win' ? 'positive' : 'negative'}">$${trade.amount.toFixed(2)} (${percentage.toFixed(2)}%)</td>
+                        <td>${trade.outcome}</td>
+                    `;
+                    tr.onclick = () => showEditModal(index, dayData);
+                    tradeTableBody.appendChild(tr);
+                });
+                updateDayData(dayData);
+                updateAllDays();
+                funds.innerText = `$${dayData.endOfDay.toFixed(2)}`;
+                nextTarget.innerText = `$${round(dayData.endOfDay * DAILY_GOAL).toFixed(2)} (5%)`;
+                todayProfit.innerText = `${dayData.dailyProfit.toFixed(2)}%`;
+                dailyGoal.innerHTML = `$${round(dayData.startOfDay * DAILY_GOAL).toFixed(2)} (5%)${dayData.dailyProfit >= 5 ? ' <span class="completed">(Completed)</span>' : ''}`;
+                save(state);
+                console.log(`Rendered trade table for ${dayData.date}`);
+            } catch (error) {
+                console.error('Error in renderTradeTable:', error);
+            }
+        }
+
+        function showEditModal(index, dayData) {
+            try {
+                selectedTradeIndex = index;
+                editModal.style.display = 'flex';
+                bottomButtons.style.display = 'none';
+                const trade = dayData.trades[index];
+                editTypeBtn.innerText = trade.type;
+                editTypeBtn.classList.toggle('active-buy', trade.type === 'Buy');
+                editTypeBtn.classList.toggle('active-sell', trade.type === 'Sell');
+                editAmount.value = trade.amount.toFixed(2);
+                editOutcomeBtn.innerText = trade.outcome;
+                editOutcomeBtn.classList.toggle('active-pill', true);
+                console.log(`Showing edit modal for trade ${index}`);
+            } catch (error) {
+                console.error('Error in showEditModal:', error);
+            }
+        }
+
+        function navigateDay(direction) {
+            try {
+                if (!currentDate) return;
+                const current = new Date(currentDate);
+                current.setDate(current.getDate() + direction);
+                const newDate = new Date(Date.UTC(current.getFullYear(), current.getMonth(), current.getDate())).toISOString().split('T')[0];
+                state.year = current.getFullYear();
+                state.month = current.getMonth();
+                currentDate = newDate;
+                console.log(`Navigating to: ${newDate}`);
+                showDayPage(newDate);
+            } catch (error) {
+                console.error('Error in navigateDay:', error);
+            }
+        }
+
+        typeBtn.addEventListener('click', () => {
+            try {
+                if (typeBtn.innerText === 'Type' || typeBtn.innerText === 'Sell') {
+                    typeBtn.innerText = 'Buy';
+                    typeBtn.classList.add('active-buy');
+                    typeBtn.classList.remove('active-sell');
+                } else {
+                    typeBtn.innerText = 'Sell';
+                    typeBtn.classList.add('active-sell');
+                    typeBtn.classList.remove('active-buy');
+                }
+                console.log(`Type button set to: ${typeBtn.innerText}`);
+            } catch (error) {
+                console.error('Error in typeBtn click:', error);
+            }
+        });
+
+        outcomeBtn.addEventListener('click', () => {
+            try {
+                if (outcomeBtn.innerText === 'Outcome' || outcomeBtn.innerText === 'Loss') {
+                    outcomeBtn.innerText = 'Win';
+                    outcomeBtn.classList.add('active-pill');
+                } else {
+                    outcomeBtn.innerText = 'Loss';
+                    outcomeBtn.classList.add('active-pill');
+                }
+                console.log(`Outcome button set to: ${outcomeBtn.innerText}`);
+            } catch (error) {
+                console.error('Error in outcomeBtn click:', error);
+            }
+        });
+
+        saveBtn.addEventListener('click', () => {
+            try {
+                const amount = parseFloat(tradeAmount.value);
+                if (!isNaN(amount) && amount > 0 && typeBtn.innerText !== 'Type' && outcomeBtn.innerText !== 'Outcome') {
+                    let dayData = state.days.find(d => d.date === currentDate);
+                    if (!dayData) {
+                        const startOfDay = getStartOfDay(currentDate);
+                        dayData = { date: currentDate, trades: [], startOfDay, endOfDay: 0, dailyProfit: 0 };
+                        state.days.push(dayData);
+                        console.log(`Created new day data for ${currentDate}`);
+                    }
+                    dayData.trades.push({
+                        type: typeBtn.innerText,
+                        amount: Math.abs(amount),
+                        outcome: outcomeBtn.innerText
+                    });
+                    renderTradeTable(dayData);
+                    typeBtn.innerText = 'Type';
+                    outcomeBtn.innerText = 'Outcome';
+                    typeBtn.classList.remove('active-buy', 'active-sell');
+                    outcomeBtn.classList.remove('active-pill');
+                    tradeAmount.value = '';
+                    updateAllDays();
+                    save(state);
+                    console.log(`Saved new trade`);
+                } else {
+                    alert('Please enter a valid amount, type, and outcome.');
+                }
+            } catch (error) {
+                console.error('Error in saveBtn click:', error);
+            }
+        });
+
+        editTypeBtn.addEventListener('click', () => {
+            try {
+                if (editTypeBtn.innerText === 'Type' || editTypeBtn.innerText === 'Sell') {
+                    editTypeBtn.innerText = 'Buy';
+                    editTypeBtn.classList.add('active-buy');
+                    editTypeBtn.classList.remove('active-sell');
+                } else {
+                    editTypeBtn.innerText = 'Sell';
+                    editTypeBtn.classList.add('active-sell');
+                    editTypeBtn.classList.remove('active-buy');
+                }
+                console.log(`Edit type button set to: ${editTypeBtn.innerText}`);
+            } catch (error) {
+                console.error('Error in editTypeBtn click:', error);
+            }
+        });
+
+        editOutcomeBtn.addEventListener('click', () => {
+            try {
+                if (editOutcomeBtn.innerText === 'Outcome' || editOutcomeBtn.innerText === 'Loss') {
+                    editOutcomeBtn.innerText = 'Win';
+                    editOutcomeBtn.classList.add('active-pill');
+                } else {
+                    editOutcomeBtn.innerText = 'Loss';
+                    editOutcomeBtn.classList.add('active-pill');
+                }
+                console.log(`Edit outcome button set to: ${editOutcomeBtn.innerText}`);
+            } catch (error) {
+                console.error('Error in editOutcomeBtn click:', error);
+            }
+        });
+
+        editSave.addEventListener('click', () => {
+            try {
+                const amount = parseFloat(editAmount.value);
+                if (!isNaN(amount) && amount > 0 && editTypeBtn.innerText !== 'Type' && editOutcomeBtn.innerText !== 'Outcome') {
+                    const dayData = state.days.find(d => d.date === currentDate);
+                    if (dayData && selectedTradeIndex !== null) {
+                        dayData.trades[selectedTradeIndex] = {
+                            type: editTypeBtn.innerText,
+                            amount: Math.abs(amount),
+                            outcome: editOutcomeBtn.innerText
+                        };
+                        renderTradeTable(dayData);
+                        editModal.style.display = 'none';
+                        console.log(`Saved edited trade ${selectedTradeIndex}`);
+                    }
+                } else {
+                    alert('Please enter a valid amount, type, and outcome.');
+                }
+            } catch (error) {
+                console.error('Error in editSave click:', error);
+            }
+        });
+
+        editDelete.addEventListener('click', () => {
+            try {
+                const dayData = state.days.find(d => d.date === currentDate);
+                if (dayData && selectedTradeIndex !== null) {
+                    dayData.trades.splice(selectedTradeIndex, 1);
+                    selectedTradeIndex = null;
+                    renderTradeTable(dayData);
+                    editModal.style.display = 'none';
+                    updateAllDays();
+                    save(state);
+                    console.log(`Deleted trade`);
+                }
+            } catch (error) {
+                console.error('Error in editDelete click:', error);
+            }
+        });
+
+        editCancel.addEventListener('click', () => {
+            try {
+                editModal.style.display = 'none';
+                bottomButtons.style.display = calendarView.style.display === 'block' ? 'flex' : 'none';
+                console.log('Edit modal cancelled');
+            } catch (error) {
+                console.error('Error in editCancel click:', error);
+            }
+        });
+
+        prevMonth.addEventListener('click', () => {
+            try {
+                state.month--;
+                if (state.month < 0) {
+                    state.month = 11;
+                    state.year--;
+                }
+                console.log(`Navigating to previous month: ${state.year}-${state.month + 1}`);
+                renderCalendar(state);
+            } catch (error) {
+                console.error('Error in prevMonth click:', error);
+            }
+        });
+
+        nextMonth.addEventListener('click', () => {
+            try {
+                state.month++;
+                if (state.month > 11) {
+                    state.month = 0;
+                    state.year++;
+                }
+                console.log(`Navigating to next month: ${state.year}-${state.month + 1}`);
+                renderCalendar(state);
+            } catch (error) {
+                console.error('Error in nextMonth click:', error);
+            }
+        });
+
+        prevDay.addEventListener('click', () => navigateDay(-1));
+        nextDay.addEventListener('click', () => navigateDay(1));
+
+        backBtn.addEventListener('click', () => {
+            try {
+                console.log('Returning to calendar view');
+                renderCalendar(state);
+            } catch (error) {
+                console.error('Error in backBtn click:', error);
+            }
+        });
+
+        themeToggle.addEventListener('click', () => {
+            try {
+                document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                themeToggle.innerText = document.documentElement.dataset.theme === 'dark' ? '☀️' : '🌙';
+                save(state);
+                console.log(`Theme set to: ${document.documentElement.dataset.theme}`);
+            } catch (error) {
+                console.error('Error in themeToggle click:', error);
+            }
+        });
+
+        capitalBtn.addEventListener('click', () => {
+            try {
+                capitalModal.style.display = 'flex';
+                bottomButtons.style.display = 'none';
+                capitalInput.value = state.initialCapital;
+                console.log('Showing capital modal');
+            } catch (error) {
+                console.error('Error in capitalBtn click:', error);
+            }
+        });
+
+        capitalSave.addEventListener('click', () => {
+            try {
+                const newCapital = parseFloat(capitalInput.value);
+                if (!isNaN(newCapital) && newCapital >= 0) {
+                    state.initialCapital = newCapital;
+                    updateAllDays();
+                    save(state);
+                    renderCalendar(state);
+                    capitalModal.style.display = 'none';
+                    console.log(`Saved capital: ${newCapital}`);
+                } else {
+                    alert('Please enter a valid capital amount.');
+                }
+            } catch (error) {
+                console.error('Error in capitalSave click:', error);
+            }
+        });
+
+        capitalCancel.addEventListener('click', () => {
+            try {
+                capitalModal.style.display = 'none';
+                bottomButtons.style.display = calendarView.style.display === 'block' ? 'flex' : 'none';
+                console.log('Capital modal cancelled');
+            } catch (error) {
+                console.error('Error in capitalCancel click:', error);
+            }
+        });
+
+        saveStateBtn.addEventListener('click', () => saveStateToFile());
+        restoreStateBtn.addEventListener('click', () => {
+            try {
+                restoreFileInput.click();
+                console.log('Triggered restore file input');
+            } catch (error) {
+                console.error('Error in restoreStateBtn click:', error);
+            }
+        });
+        restoreFileInput.addEventListener('change', restoreStateFromFile);
+
+        // Initialize
+        try {
+            console.log('Initializing application');
+            state = load();
+            if (calendarBody) {
+                const styles = window.getComputedStyle(calendarBody);
+                console.log('Initial calendar styles:', {
+                    display: styles.display,
+                    visibility: styles.visibility,
+                    opacity: styles.opacity,
+                    width: styles.width,
+                    height: styles.height
+                });
+                updateAllDays();
+                renderCalendar(state);
+            } else {
+                console.error('Calendar body not found');
+                alert('Error: Calendar body not found.');
+            }
+        } catch (error) {
+            console.error('Error during initialization:', error);
+            alert('Failed to initialize application. Check console.');
+        }
+    </script>
+</body>
+</html>
